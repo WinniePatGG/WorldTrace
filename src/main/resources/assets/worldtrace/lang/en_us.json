@@ -1,0 +1,19 @@
+{
+  "key.categories.worldtrace": "WorldTrace",
+  "key.worldtrace.journal": "Open journal",
+  "key.worldtrace.bookmark": "Bookmark current position",
+  "key.worldtrace.destination": "Set / clear destination",
+
+  "worldtrace.notification.found": "Discovered %s",
+  "worldtrace.notification.category": " (%s)",
+  "worldtrace.notification.unconfirmed": " (unconfirmed)",
+  "worldtrace.notification.revisit": "Revisited %s",
+  "worldtrace.notification.hint": "  ·  press J",
+
+  "worldtrace.message.not_in_world": "WorldTrace: join a world to use the journal.",
+  "worldtrace.message.read_only": "WorldTrace: this journal is read-only (written by a newer version).",
+  "worldtrace.message.bookmarked": "WorldTrace: bookmarked %s",
+  "worldtrace.message.destination_set": "WorldTrace: destination set to %s",
+  "worldtrace.message.destination_cleared": "WorldTrace: destination cleared",
+  "worldtrace.message.no_recent_discovery": "WorldTrace: no recent discovery to track."
+}

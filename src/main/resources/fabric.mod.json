@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "worldtrace",
+  "version": "${version}",
+  "name": "WorldTrace",
+  "description": "WorldTrace — The Memory of Your World. Automatically records the biomes, milestones and structures you find, and lets you search, annotate and navigate back to them.",
+  "authors": [
+    "WorldTrace contributors"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/worldtrace/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.worldtrace.WorldTrace"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}",
+    "java": ">=21"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://modrinth.com/mod/worldtrace"
+      }
+    }
+  }
+}
