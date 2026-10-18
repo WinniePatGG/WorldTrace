@@ -60,16 +60,11 @@ public final class JournalPainter {
     }
 
     /**
-     * Draws a glyph run straight through {@link TextRenderer} instead of via
-     * {@link DrawContext#drawText}.
+     * Draws a glyph run through {@link TextRenderer} using {@link TextRenderer.TextLayerType#NORMAL}.
      *
-     * <p>This is deliberately not the convenience call. {@code DrawContext.drawText} and
-     * {@code drawTextWithShadow} route through {@code TextLayerType.SEE_THROUGH} — the layer meant
-     * for world-space text that must show through geometry. Rendered from a GUI screen that layer
-     * samples the glyph atlas without the GUI filtering setup, and every glyph in the journal came
-     * out as a soft smear, while the vanilla widgets rendered beside it (the search field, for
-     * instance) stayed perfectly crisp. {@code TextLayerType.NORMAL} is the correct layer for
-     * interface text and renders sharply. Verified by rendering both variants in the same frame.
+     * <p>{@code NORMAL} is the layer intended for interface text. The other option,
+     * {@code SEE_THROUGH}, exists for world-space labels that must stay visible through geometry and
+     * is not the right choice for a screen.
      */
     private static void draw(DrawContext context, TextRenderer renderer, String value, int x, int y,
                              int color, boolean shadow) {

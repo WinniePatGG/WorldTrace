@@ -75,7 +75,26 @@ set changes — never per frame. Drawing and hit testing therefore cannot disagr
 loop allocates nothing.
 
 `JournalFormScreen` is the shared chrome for the modal dialogs (edit entry, place watch pin),
-supporting either a text input row or a `« »` stepper row.
+supporting either a text input row or a stepper row.
+
+#### Gotcha: draw the screen from a child element, not from `render()`
+
+Every screen here draws its interface from a private `Drawable` child rather than inline in
+`render()`. That is not a stylistic choice - it is load-bearing.
+
+**Anything drawn directly inside `Screen.render()` renders blurred** (Minecraft 1.21.1, GUI scale 2),
+while content drawn through `Screen`'s child drawables renders perfectly crisp, in the very same
+frame and from the same draw code. The symptom is a journal that looks like frosted glass with only
+the vanilla search field legible. Fills are unaffected, which makes it look like a text-rendering
+bug rather than a draw-pass bug.
+
+So each screen keeps `render()` down to `renderBackground(...)` plus `super.render(...)` and moves
+the body into a `Drawable` registered in `init()`, inserted *before* any text fields so those still
+draw on top. `JournalScreen.UiDrawable`, `JournalFormScreen.FormSurface` and
+`PinListScreen.PinListSurface` follow this pattern; follow it in any new screen too.
+
+Related: `JournalPainter.draw` pins the text layer to `TextLayerType.NORMAL` explicitly, which is
+the layer intended for interface text.
 
 ### 5. Navigation (`dev.worldtrace.navigation`)
 

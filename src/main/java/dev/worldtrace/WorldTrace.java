@@ -7,6 +7,7 @@ import dev.worldtrace.discovery.DiscoveryManager;
 import dev.worldtrace.discovery.MilestoneTracker;
 import dev.worldtrace.discovery.PinTracker;
 import dev.worldtrace.hud.NavigationHud;
+import dev.worldtrace.journal.EntryEditorScreen;
 import dev.worldtrace.journal.JournalScreen;
 import dev.worldtrace.model.TraceEntry;
 import dev.worldtrace.navigation.NavigationManager;
@@ -175,7 +176,9 @@ public final class WorldTrace implements ClientModInitializer {
         }
 
         if (WorldTraceKeys.journalPressed()) {
-            openJournal(client, null);
+            // If something was discovered moments ago, open straight onto it. This is what the
+            // "press J" hint on the discovery notification promises.
+            openJournal(client, notifier.consumeFocusEntryId().orElse(null));
         }
         if (WorldTraceKeys.bookmarkPressed()) {
             quickBookmark(client);
@@ -216,8 +219,9 @@ public final class WorldTrace implements ClientModInitializer {
                 position.getZ(), System.currentTimeMillis());
         sendFeedback(client, Text.translatable("worldtrace.message.bookmarked",
                 Text.literal(entry.name())));
-        // Jump straight to the entry so the player can name it immediately.
-        openJournal(client, entry.id());
+        // Open the editor straight away: a bookmark left named "Bookmark at x, y, z" is only useful
+        // once it has a real one.
+        client.setScreen(new EntryEditorScreen(manager, entry, null));
     }
 
     private static void quickToggleDestination(MinecraftClient client) {

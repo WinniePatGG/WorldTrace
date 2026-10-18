@@ -7,6 +7,7 @@ import dev.worldtrace.storage.LoadReport;
 import dev.worldtrace.util.Distance;
 import dev.worldtrace.util.NameFormatting;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.text.Text;
@@ -97,6 +98,10 @@ public final class JournalScreen extends Screen {
             refreshResults();
         });
         searchField.setFocused(false);
+        // Order matters: the journal surface is registered first so the search field stays on top
+        // of it, and both render in the same pass that produces crisp text.
+        // UiDrawable is only a Drawable, not a Selectable, so it goes in via addDrawable().
+        addDrawable(new UiDrawable());
         addDrawableChild(searchField);
 
         refreshResults();
@@ -329,23 +334,31 @@ public final class JournalScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        int accent = JournalPalette.opaque(manager.config().accentRgb());
         renderBackground(context, mouseX, mouseY, delta);
-        JournalPainter.window(context, width, height, accent);
-
-        renderHeader(context, accent);
-        renderFilterRow(context, mouseX, mouseY, accent);
-
-        if (showList()) {
-            renderList(context, mouseX, mouseY, accent);
-        }
-        if (showDetail()) {
-            renderDetail(context, mouseX, mouseY, accent);
-        }
-        renderFooter(context, mouseX, mouseY, accent);
-
+        // The whole interface is drawn by a child element rather than inline here. Everything drawn
+        // directly in render() came out blurred, while content drawn through super.render() — the
+        // search field — stayed razor sharp, so the UI is moved into that same pass. See UiDrawable.
         super.render(context, mouseX, mouseY, delta);
         renderTooltip(context, mouseX, mouseY);
+    }
+
+    /** Draws the entire journal surface. Registered as the first child, under the search field. */
+    private final class UiDrawable implements Drawable {
+
+        @Override
+        public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+            int accent = JournalPalette.opaque(manager.config().accentRgb());
+            JournalPainter.window(context, width, height, accent);
+            renderHeader(context, accent);
+            renderFilterRow(context, mouseX, mouseY, accent);
+            if (showList()) {
+                renderList(context, mouseX, mouseY, accent);
+            }
+            if (showDetail()) {
+                renderDetail(context, mouseX, mouseY, accent);
+            }
+            renderFooter(context, mouseX, mouseY, accent);
+        }
     }
 
     private void renderHeader(DrawContext context, int accent) {

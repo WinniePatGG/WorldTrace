@@ -89,6 +89,9 @@ public final class TraceCodec {
         json.addProperty("favorite", entry.favorite());
         json.addProperty("confirmed", entry.confirmed());
         json.addProperty("screenshot", entry.screenshotRef());
+        // The deduplication key is persisted: without it every biome and milestone looks brand new
+        // after a reload, and the journal fills up with duplicates on each session.
+        json.addProperty("discoveryKey", entry.discoveryKey());
 
         JsonArray tags = new JsonArray();
         for (String tag : entry.tags()) {

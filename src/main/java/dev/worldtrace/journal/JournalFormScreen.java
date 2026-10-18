@@ -135,6 +135,9 @@ public abstract class JournalFormScreen extends Screen {
         windowY = Math.max(4, (height - windowHeight) / 2);
         contentTop = windowY + 16;
 
+        // Registered before the inputs so the dialog surface draws underneath them.
+        addDrawable(new FormSurface());
+
         for (int i = 0; i < fields.size(); i++) {
             FormField field = fields.get(i);
             if (field.editable()) {
@@ -196,35 +199,43 @@ public abstract class JournalFormScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        int accent = JournalPalette.opaque(manager.config().accentRgb());
         renderBackground(context, mouseX, mouseY, delta);
-        JournalPainter.window(context, width, height, accent);
-
-        JournalPainter.panel(context, windowX, windowY, windowX + windowWidth, windowY + windowHeight,
-                JournalPalette.BACKGROUND, JournalPalette.BORDER);
-        context.fill(windowX, windowY, windowX + windowWidth, windowY + 1, accent);
-        JournalPainter.text(context, textRenderer, dialogTitle, windowX + 8, windowY + 6, JournalPalette.TEXT);
-
-        for (int i = 0; i < fields.size(); i++) {
-            FormField field = fields.get(i);
-            int y = contentTop + i * (ROW_LABEL_HEIGHT + ROW_FIELD_HEIGHT + ROW_GAP);
-            JournalPainter.text(context, textRenderer, field.label(), windowX + 8, y, JournalPalette.TEXT_FAINT);
-            if (!field.editable()) {
-                drawChoice(context, i, y + ROW_LABEL_HEIGHT, mouseX, mouseY, accent);
-            }
-        }
-
-        for (HitRegion region : regions) {
-            if (region.kind() != KIND_BUTTON) {
-                continue;
-            }
-            ButtonSpec button = buttons.get(region.payload());
-            JournalPainter.button(context, textRenderer, button.label(), region.x1(), region.y1(),
-                    region.x2() - region.x1(), region.y2() - region.y1(), button.enabled(),
-                    region.contains(mouseX, mouseY), false, accent);
-        }
-
+        // Drawn as a child element, not inline: see JournalScreen.UiDrawable for why direct draws
+        // inside render() come out blurred.
         super.render(context, mouseX, mouseY, delta);
+    }
+
+    private final class FormSurface implements net.minecraft.client.gui.Drawable {
+
+        @Override
+        public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+            int accent = JournalPalette.opaque(manager.config().accentRgb());
+            JournalPainter.window(context, width, height, accent);
+
+            JournalPainter.panel(context, windowX, windowY, windowX + windowWidth, windowY + windowHeight,
+                    JournalPalette.BACKGROUND, JournalPalette.BORDER);
+            context.fill(windowX, windowY, windowX + windowWidth, windowY + 1, accent);
+            JournalPainter.text(context, textRenderer, dialogTitle, windowX + 8, windowY + 6, JournalPalette.TEXT);
+
+            for (int i = 0; i < fields.size(); i++) {
+                FormField field = fields.get(i);
+                int y = contentTop + i * (ROW_LABEL_HEIGHT + ROW_FIELD_HEIGHT + ROW_GAP);
+                JournalPainter.text(context, textRenderer, field.label(), windowX + 8, y, JournalPalette.TEXT_FAINT);
+                if (!field.editable()) {
+                    drawChoice(context, i, y + ROW_LABEL_HEIGHT, mouseX, mouseY, accent);
+                }
+            }
+
+            for (HitRegion region : regions) {
+                if (region.kind() != KIND_BUTTON) {
+                    continue;
+                }
+                ButtonSpec button = buttons.get(region.payload());
+                JournalPainter.button(context, textRenderer, button.label(), region.x1(), region.y1(),
+                        region.x2() - region.x1(), region.y2() - region.y1(), button.enabled(),
+                        region.contains(mouseX, mouseY), false, accent);
+            }
+        }
     }
 
     private void drawChoice(DrawContext context, int index, int y, int mouseX, int mouseY, int accent) {

@@ -56,6 +56,9 @@ public final class PinListScreen extends Screen {
         windowY = Math.max(4, (height - windowHeight) / 2);
         contentTop = windowY + 20;
         visibleRows = Math.max(1, (windowHeight - 28) / ROW_HEIGHT);
+        // Drawn as a child element so the screen renders in the same pass as vanilla widgets;
+        // content drawn inline in render() comes out blurred.
+        addDrawable(new PinListSurface());
         rebuildRegions();
     }
 
@@ -70,8 +73,12 @@ public final class PinListScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        int accent = JournalPalette.opaque(manager.config().accentRgb());
         renderBackground(context, mouseX, mouseY, delta);
+        super.render(context, mouseX, mouseY, delta);
+    }
+
+    private void drawBody(DrawContext context, int mouseX, int mouseY) {
+        int accent = JournalPalette.opaque(manager.config().accentRgb());
         JournalPainter.window(context, width, height, accent);
 
         JournalPainter.panel(context, windowX, windowY, windowX + windowWidth, windowY + windowHeight,
@@ -105,8 +112,15 @@ public final class PinListScreen extends Screen {
                     JournalPainter.fit(textRenderer, status, windowWidth - 120), windowX + 62, closeY + 3,
                     JournalPalette.POSITIVE);
         }
+    }
 
-        super.render(context, mouseX, mouseY, delta);
+    /** Draws the whole screen. See {@link JournalScreen} for why this is a child drawable. */
+    private final class PinListSurface implements net.minecraft.client.gui.Drawable {
+
+        @Override
+        public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+            drawBody(context, mouseX, mouseY);
+        }
     }
 
     private static boolean isMouseOver(int x, int y, int w, int h, int mouseX, int mouseY) {

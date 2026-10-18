@@ -211,6 +211,45 @@ class WorldIsolationTest {
     }
 
     @Test
+    @DisplayName("Deduplication survives a save and reload cycle")
+    void deduplicationSurvivesReload(@TempDir Path dir) {
+        WorldIdentity world = Fixtures.world("Reload");
+        try (TestWorlds first = TestWorlds.create(dir, WorldTraceConfig.defaults())) {
+            first.manager().loadWorld(world, null);
+            first.manager().recordBiome("minecraft:plains", OVERWORLD, 0, 64, 0, Fixtures.T0);
+            first.manager().recordMilestone("biomes:5", "Discovered 5 biomes", "*", 0, 64, 0, Fixtures.T0);
+            assertEquals(2, first.manager().store().entryCount());
+            first.flush();
+        }
+
+        try (TestWorlds second = TestWorlds.create(dir, WorldTraceConfig.defaults())) {
+            second.manager().loadWorld(world, null);
+            assertEquals(2, second.manager().store().entryCount(),
+                    "Reopening a world must not resurrect entries");
+
+            // Both discoveries get re-encountered, exactly as happens at every session start.
+            DiscoveryOutcome biome = second.manager()
+                    .recordBiome("minecraft:plains", OVERWORLD, 800, 64, 800, Fixtures.T0 + 60_000);
+            DiscoveryOutcome milestone = second.manager()
+                    .recordMilestone("biomes:5", "Discovered 5 biomes", "*", 800, 64, 800, Fixtures.T0 + 60_001);
+
+            assertFalse(biome.created(), "A biome already in the journal must not be recorded again");
+            assertFalse(milestone.created(), "A milestone already reached must not fire twice");
+            assertEquals(2, second.manager().store().entryCount());
+            assertEquals(2, biome.entry().visitCount());
+            second.flush();
+        }
+
+        try (TestWorlds third = TestWorlds.create(dir, WorldTraceConfig.defaults())) {
+            third.manager().loadWorld(world, null);
+            assertEquals(2, third.manager().store().entryCount());
+            third.manager().recordBiome("minecraft:plains", OVERWORLD, 0, 64, 0, Fixtures.T0 + 120_000);
+            assertEquals(2, third.manager().store().entryCount(),
+                    "Deduplication has to keep working across repeated sessions");
+        }
+    }
+
+    @Test
     @DisplayName("The destination is cleared when its entry is deleted")
     void deletingDestinationClearsIt(@TempDir Path dir) {
         try (TestWorlds worlds = TestWorlds.create(dir, WorldTraceConfig.defaults())) {

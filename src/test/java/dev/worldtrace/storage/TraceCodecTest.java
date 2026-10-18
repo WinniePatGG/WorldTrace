@@ -36,6 +36,18 @@ class TraceCodecTest {
                 "screenshots/sp-entry-1/abc.png", true, null);
     }
 
+    /**
+     * An automatically discovered entry. Its discovery key is what stops a biome being recorded
+     * again after a reload, so it has to survive a full encode/decode cycle.
+     */
+    private static TraceEntry discovered() {
+        return new TraceEntry(
+                "entry-2", "Plains", "Plains", EntryCategory.BIOME, OVERWORLD,
+                12, 64, -40, 1_700_000_000_000L, 1_700_000_900_000L, 4,
+                "minecraft:plains", null, "", List.of(), false, null, true,
+                "BIOME|" + OVERWORLD + "|minecraft:plains");
+    }
+
     private static WorldIdentity identity() {
         return Fixtures.world("Codec");
     }
@@ -57,6 +69,30 @@ class TraceCodecTest {
         assertEquals(data.pins().get(0), decoded.data().pins().get(0));
         assertEquals(original.id(), decoded.data().destinationEntryId());
         assertEquals(12_345.5, decoded.data().totalDistanceTravelled());
+    }
+
+    @Test
+    @DisplayName("The discovery key survives a round trip")
+    void discoveryKeySurvivesARoundTrip() {
+        TraceEntry original = discovered();
+        TraceCodec.DecodeResult decoded = TraceCodec.decode(
+                TraceCodec.encode(new WorldData(identity(), List.of(original), List.of(), null, 0)),
+                identity(), 1L);
+
+        assertEquals(original, decoded.data().entries().get(0));
+        assertEquals(original.discoveryKey(), decoded.data().entries().get(0).discoveryKey());
+    }
+
+    @Test
+    @DisplayName("A manual entry round trips with no discovery key")
+    void manualEntryHasNoDiscoveryKey() {
+        TraceEntry original = sample();
+        TraceCodec.DecodeResult decoded = TraceCodec.decode(
+                TraceCodec.encode(new WorldData(identity(), List.of(original), List.of(), null, 0)),
+                identity(), 1L);
+
+        assertEquals(original, decoded.data().entries().get(0));
+        assertNull(decoded.data().entries().get(0).discoveryKey());
     }
 
     @Test
