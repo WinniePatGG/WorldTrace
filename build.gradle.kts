@@ -31,10 +31,14 @@ repositories {
 // client straight into a server, which is handy for exercising the multiplayer world path without
 // clicking through the menus. Unset by default.
 val quickPlayTarget: String? = providers.gradleProperty("wtQuickPlay").orNull
+val quickPlaySingleplayer: String? = providers.gradleProperty("wtQuickPlaySingle").orNull
 
 loom {
     runs {
         named("client") {
+            if (!quickPlaySingleplayer.isNullOrBlank()) {
+                programArgs("--quickPlaySingleplayer", quickPlaySingleplayer)
+            }
             if (!quickPlayTarget.isNullOrBlank()) {
                 programArgs("--quickPlayMultiplayer", quickPlayTarget)
             }

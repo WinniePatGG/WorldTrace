@@ -330,6 +330,7 @@ public final class JournalScreen extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         int accent = JournalPalette.opaque(manager.config().accentRgb());
+        renderBackground(context, mouseX, mouseY, delta);
         JournalPainter.window(context, width, height, accent);
 
         renderHeader(context, accent);

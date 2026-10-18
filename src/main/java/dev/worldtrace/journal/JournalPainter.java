@@ -3,7 +3,9 @@ package dev.worldtrace.journal;
 import dev.worldtrace.model.EntryCategory;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.Text;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Thin drawing helpers that give every part of the journal the same visual language: one pixel
@@ -32,11 +34,14 @@ public final class JournalPainter {
     /**
      * Paints the full-screen window surface that every WorldTrace screen sits on.
      *
-     * <p>This deliberately does <em>not</em> call {@link net.minecraft.client.gui.screen.Screen#renderBackground}.
-     * That method applies vanilla's full-screen blur and draws the panorama cube map. Since the
-     * journal covers the entire window, the result was a frosted, blurred wash bleeding through the
-     * whole interface (most obvious against the one widget that paints its own opaque background, the
-     * search field) — plus a blur pass every frame that nothing could ever see.
+     * <p>Callers must invoke {@link net.minecraft.client.gui.screen.Screen#renderBackground} first,
+     * and both halves are required. {@code renderBackground} is what <em>releases</em> Minecraft's
+     * screen-blur post-process after drawing the blurred backdrop; skip it and the post-process stays
+     * bound, so every fill and every glyph this mod draws is smeared — most visibly next to widgets
+     * such as the search field that render through a different path and stay sharp. Calling it while
+     * keeping a translucent window surface has the mirror-image problem: the blurred backdrop bleeds
+     * through the whole interface. An opaque surface drawn on top of the released backdrop gives a
+     * crisp, fully opaque screen.
      */
     public static void window(DrawContext context, int width, int height, int accentArgb) {
         context.fill(0, 0, width, height, JournalPalette.BACKGROUND);
@@ -47,15 +52,84 @@ public final class JournalPainter {
     }
 
     public static void text(DrawContext context, TextRenderer renderer, String value, int x, int y, int color) {
-        context.drawText(renderer, Text.literal(value), x, y, color, false);
+        draw(context, renderer, value, x, y, color, false);
     }
 
     public static void textShadow(DrawContext context, TextRenderer renderer, String value, int x, int y, int color) {
-        context.drawTextWithShadow(renderer, Text.literal(value), x, y, color);
+        draw(context, renderer, value, x, y, color, true);
+    }
+
+    /**
+     * Draws a glyph run straight through {@link TextRenderer} instead of via
+     * {@link DrawContext#drawText}.
+     *
+     * <p>This is deliberately not the convenience call. {@code DrawContext.drawText} and
+     * {@code drawTextWithShadow} route through {@code TextLayerType.SEE_THROUGH} — the layer meant
+     * for world-space text that must show through geometry. Rendered from a GUI screen that layer
+     * samples the glyph atlas without the GUI filtering setup, and every glyph in the journal came
+     * out as a soft smear, while the vanilla widgets rendered beside it (the search field, for
+     * instance) stayed perfectly crisp. {@code TextLayerType.NORMAL} is the correct layer for
+     * interface text and renders sharply. Verified by rendering both variants in the same frame.
+     */
+    private static void draw(DrawContext context, TextRenderer renderer, String value, int x, int y,
+                             int color, boolean shadow) {
+        renderer.draw(value, x, y, color, shadow,
+                context.getMatrices().peek().getPositionMatrix(),
+                context.getVertexConsumers(),
+                TextRenderer.TextLayerType.NORMAL, 0, 0xFFFFFF);
     }
 
     public static void centered(DrawContext context, TextRenderer renderer, String value, int centerX, int y, int color) {
-        context.drawText(renderer, Text.literal(value), centerX - renderer.getWidth(value) / 2, y, color, false);
+        draw(context, renderer, value, centerX - renderer.getWidth(value) / 2, y, color, false);
+    }
+
+    /**
+     * Greedy word wrap. Kept here rather than using {@code TextRenderer.wrapLines} because that
+     * returns {@link net.minecraft.text.OrderedText}, which cannot be turned back into a plain
+     * String for {@link #text} — and going through {@code DrawContext} is exactly what makes GUI
+     * text render blurred.
+     *
+     * <p>Words longer than the available width are hard-split so a long tag or a pasted coordinate
+     * string can never overflow the pane.
+     */
+    public static List<String> wrap(TextRenderer renderer, String value, int maxWidth) {
+        List<String> lines = new ArrayList<>();
+        if (value == null || value.isEmpty() || maxWidth <= 0) {
+            return lines;
+        }
+        StringBuilder current = new StringBuilder();
+        for (String word : value.trim().split("\\s+")) {
+            if (word.isEmpty()) {
+                continue;
+            }
+            String candidate = current.isEmpty() ? word : current + " " + word;
+            if (renderer.getWidth(candidate) <= maxWidth) {
+                current.setLength(0);
+                current.append(candidate);
+                continue;
+            }
+            if (!current.isEmpty()) {
+                lines.add(current.toString());
+                current.setLength(0);
+            }
+            if (renderer.getWidth(word) <= maxWidth) {
+                current.append(word);
+                continue;
+            }
+            StringBuilder part = new StringBuilder();
+            for (int i = 0; i < word.length(); i++) {
+                if (renderer.getWidth(part.toString() + word.charAt(i)) > maxWidth && part.length() > 0) {
+                    lines.add(part.toString());
+                    part.setLength(0);
+                }
+                part.append(word.charAt(i));
+            }
+            current.append(part);
+        }
+        if (!current.isEmpty()) {
+            lines.add(current.toString());
+        }
+        return lines;
     }
 
     /** Truncates with a trailing ellipsis so long biome names never bleed into the next column. */

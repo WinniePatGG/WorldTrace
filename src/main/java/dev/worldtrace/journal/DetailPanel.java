@@ -10,7 +10,6 @@ import dev.worldtrace.util.NameFormatting;
 import dev.worldtrace.util.Timestamps;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
 
 import java.util.List;
@@ -238,7 +237,7 @@ final class DetailPanel {
         if (value == null || value.isEmpty()) {
             return y;
         }
-        List<OrderedText> lines = textRenderer.wrapLines(Text.literal(value), maxWidth);
+        List<String> lines = JournalPainter.wrap(textRenderer, value, maxWidth);
         if (lines.isEmpty()) {
             return y;
         }
@@ -248,7 +247,7 @@ final class DetailPanel {
             if (lineY + textRenderer.fontHeight > yLimit) {
                 return y;
             }
-            context.drawText(textRenderer, lines.get(i), x, lineY, color, false);
+            JournalPainter.text(context, textRenderer, lines.get(i), x, lineY, color);
         }
         return y + drawn * lineHeight;
     }
