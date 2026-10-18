@@ -5,13 +5,6 @@ import dev.worldtrace.model.TracePin;
 
 import java.util.List;
 
-/**
- * Immutable snapshot of everything WorldTrace persists for a single world.
- *
- * <p>Snapshots are taken on the game thread (cheap: they only copy references) and handed to the
- * background writer, so the disk never touches the render thread and the writer can never observe
- * a half-mutated collection.
- */
 public record WorldData(
         WorldIdentity identity,
         List<TraceEntry> entries,

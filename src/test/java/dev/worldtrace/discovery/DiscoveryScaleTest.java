@@ -22,9 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Volume and timing behaviour that a real long-running survival world exercises.
- */
 class DiscoveryScaleTest {
 
     private static final String OVERWORLD = "minecraft:overworld";
@@ -68,7 +65,7 @@ class DiscoveryScaleTest {
 
             List<TraceEntry> created = new ArrayList<>();
             for (int i = 0; i < 5_000; i++) {
-                // The same biome, repeated over and over, from many different positions.
+
                 var outcome = worlds.manager().recordBiome("minecraft:plains", OVERWORLD, i, 64, i, Fixtures.T0 + i);
                 if (outcome.created()) {
                     created.add(outcome.entry());
@@ -129,7 +126,6 @@ class DiscoveryScaleTest {
                     .count();
             assertEquals(3, travelMilestones, "1 km, 5 km and 10 km thresholds should have fired once each");
 
-            // Feeding the same total again must not replay milestones.
             for (int step = 0; step < 1_000; step++) {
                 worlds.manager().addDistanceTravelled(0);
                 milestones.onDistanceMoved(new net.minecraft.util.math.BlockPos(0, 64, 0), Fixtures.T0);
@@ -152,7 +148,7 @@ class DiscoveryScaleTest {
                 worlds.manager().recordBiome("minecraft:biome_" + i, OVERWORLD, i, 64, i, Fixtures.T0 + i);
                 milestones.onCoverageSample(position, Fixtures.T0 + i);
             }
-            // Running the sampler again with the same counts must not add anything.
+
             milestones.onCoverageSample(position, Fixtures.T0 + 100);
 
             long coverage = worlds.manager().store().entryList().stream()

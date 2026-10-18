@@ -2,37 +2,20 @@ package dev.worldtrace.navigation;
 
 import dev.worldtrace.util.Distance;
 
-/**
- * Pure navigation maths shared by the HUD, the journal and the tests.
- *
- * <p>Directional guidance is only meaningful inside one dimension, so every evaluation explicitly
- * reports whether the player and the destination share a dimension. Cross-dimension results are
- * never faked into a distance, because a Euclidean distance between the Overworld and the Nether is
- * meaningless to a player and, more importantly, would be dishonest.
- */
 public final class NavigationCore {
 
     public enum DistanceKind {
-        /** Distance and heading are both meaningful. */
+
         SAME_DIMENSION,
-        /** The destination is in another dimension; no straight-line guidance is possible. */
+
         OTHER_DIMENSION,
-        /** The player's own position is unknown (not in a world). */
+
         UNKNOWN
     }
 
-    /** A position in a named dimension. */
     public record Position(String dimensionId, int x, int y, int z) {
     }
 
-    /**
-     * @param kind            relationship between player and destination
-     * @param distanceBlocks  3D distance when {@code kind == SAME_DIMENSION}, otherwise NaN
-     * @param horizontalDelta signed degrees relative to the player's facing (0 = straight ahead,
-     *                        positive = clockwise/right)
-     * @param targetYaw       absolute yaw of the destination in Minecraft's convention, or NaN when
-     *                        no heading is meaningful
-     */
     public record Result(DistanceKind kind, double distanceBlocks, double horizontalDelta, double targetYaw) {
 
         public boolean isDirectional() {
@@ -60,12 +43,6 @@ public final class NavigationCore {
         return new Result(DistanceKind.SAME_DIMENSION, distance, 0.0, Double.NaN);
     }
 
-    /**
-     * Computes the heading the player would have to turn, given the current yaw in Minecraft's
-     * convention (0 = south / +Z, increasing clockwise).
-     *
-     * @param playerYaw  the player's current yaw in degrees
-     */
     public static Result evaluate(Position player, Position destination, double playerYaw) {
         Result base = evaluate(player, destination);
         if (!base.isDirectional()) {
@@ -81,21 +58,12 @@ public final class NavigationCore {
         return new Result(DistanceKind.SAME_DIMENSION, base.distanceBlocks(), delta, targetYaw);
     }
 
-    /**
-     * Compass name for an absolute yaw in Minecraft's convention.
-     * 0 = south, 90 = west, 180 = north, 270 = east.
-     */
     public static String compassLabel(double yaw) {
         String[] labels = {"South", "South-West", "West", "North-West", "North", "North-East", "East", "South-East"};
         int index = (int) Math.round(Distance.wrapDegrees(yaw) / 45.0) & 0x7;
         return labels[index];
     }
 
-    /**
-     * Relative description of a heading offset, e.g. {@code "ahead"} or {@code "behind-left"}.
-     * This is what the HUD shows, because "North" is meaningless without knowing which way the
-     * player is facing.
-     */
     public static String relativeLabel(double horizontalDelta) {
         double delta = Distance.wrapDegrees(horizontalDelta);
         int octant = (int) Math.round(delta / 45.0) & 0x7;

@@ -1,6 +1,5 @@
 package dev.worldtrace.journal;
 
-/** Ordering options offered by the journal's sort control. */
 public enum SortMode {
 
     NEWEST("Newest first"),

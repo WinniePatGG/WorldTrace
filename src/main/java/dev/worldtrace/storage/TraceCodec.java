@@ -14,13 +14,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Reads and writes {@link WorldData} as JSON.
- *
- * <p>The codec is intentionally forgiving on the way in and strict on the way out. Every record is
- * validated individually: a single malformed entry is reported and skipped instead of failing the
- * whole file, because losing an entire exploration history over one bad row is unacceptable.
- */
 public final class TraceCodec {
 
     public static final int SCHEMA_VERSION = 1;
@@ -34,8 +27,6 @@ public final class TraceCodec {
 
     private TraceCodec() {
     }
-
-    // ------------------------------------------------------------------ write
 
     public static JsonObject encode(WorldData data) {
         JsonObject root = new JsonObject();
@@ -69,7 +60,6 @@ public final class TraceCodec {
         return world;
     }
 
-    /** Package-private so tests can build a single-record document without a wrapper. */
     static JsonObject encodeEntry(TraceEntry entry) {
         JsonObject json = new JsonObject();
         json.addProperty("id", entry.id());
@@ -89,8 +79,7 @@ public final class TraceCodec {
         json.addProperty("favorite", entry.favorite());
         json.addProperty("confirmed", entry.confirmed());
         json.addProperty("screenshot", entry.screenshotRef());
-        // The deduplication key is persisted: without it every biome and milestone looks brand new
-        // after a reload, and the journal fills up with duplicates on each session.
+
         json.addProperty("discoveryKey", entry.discoveryKey());
 
         JsonArray tags = new JsonArray();
@@ -117,14 +106,6 @@ public final class TraceCodec {
         return json;
     }
 
-    // ------------------------------------------------------------------- read
-
-    /**
-     * Decodes a document produced by {@link #encode}.
-     *
-     * @param fallbackTimestamp used for records whose timestamp fields are missing, so that a
-     *                         hand-edited file still yields usable ordering data
-     */
     public static DecodeResult decode(JsonObject root, WorldIdentity expectedIdentity, long fallbackTimestamp) {
         if (root == null) {
             throw new IllegalArgumentException("root document must not be null");
@@ -135,7 +116,7 @@ public final class TraceCodec {
             report.migratedFrom(fromVersion);
         }
         if (fromVersion > SCHEMA_VERSION) {
-            // Newer file than this build understands: read it best-effort but never overwrite it.
+
             report.readOnly(true);
             report.warn("World data was written by a newer WorldTrace version (schema "
                     + fromVersion + ", this build understands " + SCHEMA_VERSION
@@ -326,8 +307,6 @@ public final class TraceCodec {
                 optBoolean(json, "resolved", false));
     }
 
-    // ---------------------------------------------------------------- helpers
-
     private static int requireInt(JsonObject json, String key) {
         JsonElement element = json.get(key);
         if (element == null || element.isJsonNull() || !element.isJsonPrimitive()
@@ -363,7 +342,6 @@ public final class TraceCodec {
         return Double.isNaN(value) || Double.isInfinite(value) ? fallback : value;
     }
 
-    /** Integer-ish numeric field widened to {@code long}, rejecting non-finite values. */
     private static long optLong(JsonObject json, String key, long fallback) {
         JsonElement element = json.get(key);
         if (element == null || element.isJsonNull() || !element.isJsonPrimitive()) {
@@ -409,14 +387,12 @@ public final class TraceCodec {
         return element.getAsJsonArray();
     }
 
-    /** Thrown internally when a single record cannot be turned into a valid model object. */
     private static final class RecordRejectedException extends RuntimeException {
         private RecordRejectedException(String message) {
             super(message);
         }
     }
 
-    /** Result of a decode: the recovered data plus an honest account of what was lost. */
     public record DecodeResult(WorldData data, LoadReport report) {
     }
 }

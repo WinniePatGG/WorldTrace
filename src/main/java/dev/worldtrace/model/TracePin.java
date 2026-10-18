@@ -5,19 +5,6 @@ import dev.worldtrace.util.InputValidation;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * A "watch pin": an expectation that something interesting exists at a given position.
- *
- * <p>Why this exists: a Fabric client has no access to structure start positions. Vanilla never
- * sends structure data to clients, so no honest client-side mod can claim "there is a desert
- * temple here" on its own. WorldTrace therefore lets the player record where a structure is
- * supposed to be — from a seed map, a friend's coordinates, or an expedition plan — and only
- * creates a discovery once the player has actually been there. See {@code README.md} for details.
- *
- * @param structureId expected structure identifier, or {@code null} for a plain landmark pin
- * @param radius      horizontal+vertical reach at which the pin counts as "reached"
- * @param resolved    set once the pin produced a discovery, so it is never evaluated twice
- */
 public record TracePin(
         String id,
         String label,
@@ -61,7 +48,6 @@ public record TracePin(
                 radius, note, now, false);
     }
 
-    /** Pins with a structure id become structure discoveries; the rest are landmarks. */
     public EntryCategory category() {
         return structureId == null ? EntryCategory.LANDMARK : EntryCategory.STRUCTURE;
     }

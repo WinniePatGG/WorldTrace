@@ -15,17 +15,6 @@ import net.minecraft.text.Text;
 
 import java.util.Optional;
 
-/**
- * Announces discoveries without interrupting play.
- *
- * <p>The action bar is used rather than chat or a toast: it appears above the hotbar for a couple of
- * seconds, leaves the chat history clean, and cannot be missed. No sound is played — a quiet mod is
- * a mod people keep installed.
- *
- * <p>Opening the journal within {@link #FOCUS_WINDOW_MILLIS} of a notification jumps straight to that
- * entry. That is the "quick way to the relevant entry" affordance, achieved without needing
- * clickable action-bar text and a matching click handler.
- */
 public final class DiscoveryNotifier {
 
     static final long FOCUS_WINDOW_MILLIS = 10_000L;
@@ -40,7 +29,6 @@ public final class DiscoveryNotifier {
         this.manager = manager;
     }
 
-    /** Subscribes to journal events for the lifetime of the mod. */
     public void register() {
         manager.addListener(this::onDiscoveryEvent);
     }
@@ -54,7 +42,7 @@ public final class DiscoveryNotifier {
                 }
             }
             default -> {
-                // Edits and deletions are the player's own actions; they do not need announcing.
+
             }
         }
     }
@@ -66,7 +54,7 @@ public final class DiscoveryNotifier {
 
         WorldTraceConfig config = manager.config();
         if (config.autoScreenshotOnDiscovery()) {
-            // Best effort; silently skipped when the player did not just take a screenshot.
+
             manager.attachMostRecentScreenshot(entry.id());
         }
         if (config.notificationMode() == NotificationMode.OFF) {
@@ -93,7 +81,7 @@ public final class DiscoveryNotifier {
     private MutableText buildMessage(TraceEntry entry) {
         MutableText message = Text.translatable("worldtrace.notification.found", Text.literal(entry.name()));
         if (entry.category() == EntryCategory.STRUCTURE && !entry.confirmed()) {
-            // Never present a guess as a fact.
+
             message.append(Text.translatable("worldtrace.notification.unconfirmed"));
         } else {
             message.append(Text.translatable("worldtrace.notification.category",
@@ -103,10 +91,6 @@ public final class DiscoveryNotifier {
         return message;
     }
 
-    /**
-     * Entry the journal should open on, if the player just received a discovery notification.
-     * Consumed once so a later manual journal opening behaves normally.
-     */
     public Optional<String> consumeFocusEntryId() {
         String candidate = pendingFocusEntryId;
         pendingFocusEntryId = null;
@@ -128,7 +112,6 @@ public final class DiscoveryNotifier {
         return lastAnnouncedAtMillis;
     }
 
-    /** Summary line for the HUD's "recent find" strip. */
     public static String describeRecent(TraceEntry entry, long now) {
         return NameFormatting.prettifyIdentifier(entry.name()) + " · "
                 + Timestamps.formatRelative(entry.firstSeenAtMillis(), now);

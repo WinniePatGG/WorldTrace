@@ -7,13 +7,6 @@ import net.minecraft.client.gui.screen.Screen;
 
 import java.util.List;
 
-/**
- * Edits the parts of a journal entry a player owns: its display name, notes and tags.
- *
- * <p>Position, dimension and discovery identity are never editable — those are facts, not
- * preferences, and letting a bookmark drift away from where it was placed would make the journal
- * lie. Tags are typed as free text and split on commas or whitespace.
- */
 public final class EntryEditorScreen extends JournalFormScreen {
 
     private static final int NOTES_LENGTH = InputValidation.MAX_NOTES_LENGTH;

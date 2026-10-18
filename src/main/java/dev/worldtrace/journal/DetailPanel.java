@@ -15,14 +15,6 @@ import net.minecraft.text.Text;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Draws the journal's detail pane: everything known about the selected entry, plus its action
- * buttons.
- *
- * <p>Split out of {@link JournalScreen} so the screen is about navigation and state rather than
- * about text layout. The pane is drawn top-down and stops adding content once the action button row
- * would be reached, so a tall list of metadata can never overlap the buttons on a short window.
- */
 final class DetailPanel {
 
     static final int FAVORITE = 1;
@@ -35,14 +27,12 @@ final class DetailPanel {
     private static final int FIRST_ACTION = FAVORITE;
     private static final int LAST_ACTION = DELETE;
 
-    /** Geometry of the pane, resolved once by the owning screen. */
     record Area(int left, int right, int top, int bottom, int actionTop) {
     }
 
     private DetailPanel() {
     }
 
-    /** Button caption for a detail action. */
     static String actionLabel(int action, TraceEntry entry, boolean isDestination) {
         return switch (action) {
             case FAVORITE -> entry.favorite() ? "Unfavorite" : "Favorite";
@@ -55,7 +45,6 @@ final class DetailPanel {
         };
     }
 
-    /** True for the actions that only read state, and so stay enabled in a read-only journal. */
     static boolean isAlwaysEnabled(int action) {
         return action == COPY || action == FAVORITE;
     }
@@ -103,7 +92,7 @@ final class DetailPanel {
     }
 
     private static int layoutPadding() {
-        // Matches JournalLayout for every density; kept in one place so the panel never guesses.
+
         return 8;
     }
 
@@ -159,7 +148,7 @@ final class DetailPanel {
 
     private static int drawNotes(DrawContext context, TextRenderer textRenderer, TraceEntry entry,
                                  int x, int y, int width, int lineHeight, int yLimit) {
-        // Only start the notes block if a useful amount of it fits.
+
         if (y + lineHeight * 3 >= yLimit) {
             return y;
         }
@@ -217,7 +206,6 @@ final class DetailPanel {
         };
     }
 
-    /** Draws a labelled line and advances the cursor, stopping early once space runs out. */
     private static int drawField(DrawContext context, TextRenderer textRenderer, String label, String value,
                                  int x, int y, int width, int yLimit) {
         if (y + textRenderer.fontHeight > yLimit) {

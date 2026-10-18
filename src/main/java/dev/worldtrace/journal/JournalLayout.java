@@ -1,19 +1,5 @@
 package dev.worldtrace.journal;
 
-/**
- * Responsive metrics for the journal window.
- *
- * <p>The journal has to work from a tiny 320x240 window at GUI scale 4 up to a 4K screen at scale 1.
- * Rather than scaling widgets (which would fight the vanilla renderer), the layout keeps a single
- * row height and padding, and adapts in three steps:
- *
- * <ol>
- *   <li><b>Roomy</b> — both panes side by side, generous padding.</li>
- *   <li><b>Compact</b> — tighter padding, shorter rows, the list column narrows.</li>
- *   <li><b>Narrow</b> — only one pane at a time; the detail replaces the list and a Back control
- *       returns. Nothing becomes unreachable.</li>
- * </ol>
- */
 public final class JournalLayout {
 
     public enum Mode {
@@ -46,7 +32,7 @@ public final class JournalLayout {
             case COMPACT -> 6;
             case NARROW -> 4;
         };
-        // Tall enough for a name plus the dimension and coordinates line at every density.
+
         this.rowHeight = mode == Mode.ROOMY ? 24 : 22;
         this.listWidth = mode == Mode.NARROW
                 ? this.width - padding * 2
@@ -55,10 +41,6 @@ public final class JournalLayout {
         this.visibleRows = Math.max(1, (this.height - verticalChrome()) / rowHeight);
     }
 
-    /**
-     * The category chip row wraps when the window is too narrow. The caller measures the chips and
-     * reports how many lines they need, so the content area below is always correct.
-     */
     public void setFilterLines(int lines) {
         int clamped = Math.max(1, lines);
         if (clamped == this.filterLines) {
@@ -72,7 +54,6 @@ public final class JournalLayout {
         return filterLines;
     }
 
-    /** Total vertical space consumed by the header, filter rows and footer. */
     private int verticalChrome() {
         return padding * 2 + headerHeight() + searchRowHeight() + filterRowHeight() * filterLines
                 + footerHeight() + 8;
@@ -159,8 +140,7 @@ public final class JournalLayout {
     }
 
     public int listRight() {
-        // In narrow mode the list owns the full content width, because the detail pane replaces it
-        // rather than sharing the row.
+
         return narrow() ? width - padding : listLeft() + listWidth;
     }
 
@@ -172,7 +152,6 @@ public final class JournalLayout {
         return width - padding;
     }
 
-    /** Inner width of a list row, excluding its left colour bar and padding. */
     public int rowContentWidth() {
         return listWidth - padding * 2 - 10;
     }

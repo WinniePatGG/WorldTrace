@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Distance, heading and dimension-aware destination behaviour. */
 class NavigationCoreTest {
 
     private static final String OVERWORLD = "minecraft:overworld";
@@ -28,7 +27,7 @@ class NavigationCoreTest {
     @Test
     @DisplayName("Distance is the true three-dimensional block distance")
     void distanceIsThreeDimensional() {
-        // 3 blocks east and 4 blocks north is 5; the vertical offset must count too.
+
         assertEquals(5.0, NavigationCore.evaluate(
                 position(OVERWORLD, 0, 64, 0), position(OVERWORLD, 3, 64, 4)).distanceBlocks(), 1e-9);
         assertEquals(Math.sqrt(41.0), NavigationCore.evaluate(
@@ -62,7 +61,7 @@ class NavigationCoreTest {
     @Test
     @DisplayName("Heading is zero when the destination is straight ahead")
     void headingStraightAhead() {
-        // Minecraft yaw 180 faces north (-Z), which is where the destination is.
+
         NavigationCore.Result result = NavigationCore.evaluate(
                 position(OVERWORLD, 0, 64, 0), position(OVERWORLD, 0, 64, -50), 180.0);
         assertEquals(0.0, result.horizontalDelta(), 0.001);
@@ -73,7 +72,7 @@ class NavigationCoreTest {
     @Test
     @DisplayName("Heading turns clockwise to the player's right")
     void headingToTheRight() {
-        // Facing north (-Z) with the destination to the east (+X) is a quarter turn clockwise.
+
         NavigationCore.Result result = NavigationCore.evaluate(
                 position(OVERWORLD, 0, 64, 0), position(OVERWORLD, 50, 64, 0), 180.0);
         assertEquals(90.0, result.horizontalDelta(), 0.001);
@@ -116,7 +115,7 @@ class NavigationCoreTest {
         assertEquals("West", NavigationCore.compassLabel(90.0));
         assertEquals("North", NavigationCore.compassLabel(180.0));
         assertEquals("East", NavigationCore.compassLabel(270.0));
-        // -135 is the same heading as 225, which sits between north (180) and east (270).
+
         assertEquals("North-East", NavigationCore.compassLabel(-135.0));
     }
 

@@ -11,13 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Mutable, single-world repository holding the journal in memory.
- *
- * <p>All access happens on the game thread; {@link #snapshot()} is the only method that hands data
- * to another thread and it returns a fully immutable copy. Keeping the mutation API this small makes
- * it obvious where saves are triggered, and keeps {@link #dirty} meaningful.
- */
 public final class TraceStore {
 
     private final Map<String, TraceEntry> entries = new LinkedHashMap<>();
@@ -34,7 +27,6 @@ public final class TraceStore {
         this.identity = identity;
     }
 
-    /** Replaces the whole content, e.g. after loading a world file. */
     public void restore(WorldData data, LoadReport report, boolean readOnly) {
         this.identity = data.identity();
         entries.clear();
@@ -63,8 +55,6 @@ public final class TraceStore {
         dirty = false;
     }
 
-    // ---------------------------------------------------------------- entries
-
     public Optional<TraceEntry> entry(String id) {
         return id == null ? Optional.empty() : Optional.ofNullable(entries.get(id));
     }
@@ -81,11 +71,6 @@ public final class TraceStore {
         return entries.size();
     }
 
-    /**
-     * Inserts or replaces an entry by id and marks the journal dirty.
-     *
-     * @return true when the journal changed
-     */
     public boolean putEntry(TraceEntry entry) {
         TraceEntry previous = entries.put(entry.id(), entry);
         markDirty();
@@ -110,8 +95,6 @@ public final class TraceStore {
         }
         markDirty();
     }
-
-    // ------------------------------------------------------------------- pins
 
     public Optional<TracePin> pin(String id) {
         return id == null ? Optional.empty() : Optional.ofNullable(pins.get(id));
@@ -138,8 +121,6 @@ public final class TraceStore {
         }
         return removed;
     }
-
-    // ------------------------------------------------------------ world state
 
     public WorldIdentity identity() {
         return identity;
@@ -189,7 +170,6 @@ public final class TraceStore {
         this.dirty = false;
     }
 
-    /** Immutable copy handed to the storage thread. */
     public WorldData snapshot() {
         return new WorldData(identity, new ArrayList<>(entries.values()), new ArrayList<>(pins.values()),
                 destinationEntryId, totalDistanceTravelled);

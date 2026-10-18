@@ -13,18 +13,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * Watches the player's surroundings for the watch pins they placed.
- *
- * <p>Runs entirely off the player's own movement: every ten ticks the distance to each unresolved
- * pin in the current dimension is checked with a few integer subtractions. Only once a pin is
- * actually reached does the comparatively expensive block verification start, and even that is
- * spread across ticks by {@link BlockScanJob}.
- */
 public final class PinTracker {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("WorldTrace/Discovery");
-    /** Blocks inspected per tick in total, shared between any concurrent verifications. */
+
     private static final int SCAN_BUDGET_PER_TICK = 4096;
     private static final int TICKS_BETWEEN_CHECKS = 10;
 
@@ -61,7 +53,7 @@ public final class PinTracker {
         String dimensionId = world.getRegistryKey().getValue().toString();
         if (!dimensionId.equals(lastDimensionId)) {
             lastDimensionId = dimensionId;
-            // Chunks from the previous dimension are gone, so any running scan is meaningless.
+
             activeScans.clear();
             pending.clear();
         }
@@ -79,7 +71,7 @@ public final class PinTracker {
             }
             manager.resolvePin(pin);
             if (pin.structureId() == null) {
-                // A landmark pin is confirmed by the player's presence alone.
+
                 manager.recordPin(pin, true, System.currentTimeMillis());
                 continue;
             }
@@ -97,8 +89,7 @@ public final class PinTracker {
     private void startVerification(ClientWorld world, TracePin pin) {
         StructureCatalog.StructureType type = StructureCatalog.lookup(pin.structureId());
         if (type == null) {
-            // Modded or unknown structure: record the visit honestly, but without claiming the
-            // marker blocks were seen.
+
             LOGGER.debug("Pin {} references unknown structure '{}'; recording an unconfirmed visit.",
                     pin.id(), pin.structureId());
             manager.recordPin(pin, false, System.currentTimeMillis());
@@ -127,7 +118,6 @@ public final class PinTracker {
         }
     }
 
-    /** How many pins are still waiting to be reached, shown in the journal status line. */
     public int pendingCount() {
         return manager.unresolvedPins().size();
     }

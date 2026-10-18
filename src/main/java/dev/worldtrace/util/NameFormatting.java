@@ -1,12 +1,5 @@
 package dev.worldtrace.util;
 
-/**
- * Turns registry identifiers such as {@code minecraft:cherry_grove} into human readable labels.
- *
- * <p>WorldTrace deliberately derives names from the identifier instead of a translation key:
- * biome and structure display names are not guaranteed to be translatable for modded content, and
- * a deterministic transformation keeps the journal readable in every language.
- */
 public final class NameFormatting {
 
     private NameFormatting() {
@@ -19,7 +12,7 @@ public final class NameFormatting {
         String value = identifier.trim();
         int colon = value.indexOf(':');
         if (colon >= 0) {
-            // "minecraft:cherry_grove" -> "cherry_grove"; "minecraft:" -> nothing usable left.
+
             String tail = value.substring(colon + 1);
             value = tail.isBlank() ? "" : tail;
         }
@@ -48,9 +41,6 @@ public final class NameFormatting {
         return result.toString();
     }
 
-    /**
-     * Shortens a label for compact UI slots, appending an ellipsis when it had to be cut.
-     */
     public static String ellipsize(String value, int maxLength) {
         if (value == null) {
             return "";

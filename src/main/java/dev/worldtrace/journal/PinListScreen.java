@@ -15,13 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Lists the watch pins for the current world so they can be reviewed and removed.
- *
- * <p>Pins are the only expectation-driven feature in WorldTrace, so this screen deliberately shows
- * how far each pin is, whether it has been reached, and — for structure pins — whether the finding
- * was confirmed against real blocks or only visited.
- */
 public final class PinListScreen extends Screen {
 
     private static final int ROW_HEIGHT = 26;
@@ -56,8 +49,7 @@ public final class PinListScreen extends Screen {
         windowY = Math.max(4, (height - windowHeight) / 2);
         contentTop = windowY + 20;
         visibleRows = Math.max(1, (windowHeight - 28) / ROW_HEIGHT);
-        // Drawn as a child element so the screen renders in the same pass as vanilla widgets;
-        // content drawn inline in render() comes out blurred.
+
         addDrawable(new PinListSurface());
         rebuildRegions();
     }
@@ -114,7 +106,6 @@ public final class PinListScreen extends Screen {
         }
     }
 
-    /** Draws the whole screen. See {@link JournalScreen} for why this is a child drawable. */
     private final class PinListSurface implements net.minecraft.client.gui.Drawable {
 
         @Override

@@ -4,10 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Outcome of loading a world file. Surfaced in the log and in the journal status line so that a
- * partially recovered file is never silently presented as a complete journal.
- */
 public record LoadReport(
         int entriesLoaded,
         int entriesSkipped,
@@ -99,7 +95,6 @@ public record LoadReport(
             return this;
         }
 
-        /** Used by the codec to cap how many per-record warnings end up in the log. */
         public int warningsSize() {
             return warnings.size();
         }

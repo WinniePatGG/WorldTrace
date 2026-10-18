@@ -16,14 +16,6 @@ import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Crash-safe JSON file access.
- *
- * <p>Writes go to a sibling {@code .tmp} file first and are then moved over the target with
- * {@link StandardCopyOption#ATOMIC_MOVE}, so a crash mid-write can never leave a half-written
- * journal. The previous good file is kept as {@code .bak} and used to recover from a corrupt
- * primary file.
- */
 public final class JsonFileStore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("WorldTrace/Storage");
@@ -73,10 +65,6 @@ public final class JsonFileStore {
         }
     }
 
-    /**
-     * Writes {@code root} atomically. On failure the previous file is left untouched and the error
-     * is reported to the caller; the scheduler logs it and keeps the in-memory data valid.
-     */
     public static void write(Path file, JsonObject root) {
         Path parent = file.getParent();
         Path temp = null;
@@ -117,10 +105,6 @@ public final class JsonFileStore {
         }
     }
 
-    /**
-     * Moves an unparseable file aside so the player can inspect or restore it manually. The mod
-     * starts with an empty journal rather than refusing to launch.
-     */
     private static void quarantine(Path file) {
         Path quarantined = file.resolveSibling(
                 file.getFileName() + ".corrupt-" + System.currentTimeMillis());

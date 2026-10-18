@@ -6,13 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Applies a {@link JournalQuery} to a collection of entries.
- *
- * <p>Pure and side-effect free so the combination rules can be unit tested exhaustively. Search
- * tokens are AND-ed: typing {@code "cherry overworld"} narrows rather than widens, which matches how
- * players expect a search box in an archive to behave.
- */
 public final class JournalFilter {
 
     private JournalFilter() {
@@ -57,8 +50,7 @@ public final class JournalFilter {
     }
 
     private static boolean matches(TraceEntry entry, String[] tokens, int[] coordinateQuery) {
-        // An exact triplet such as "-120, 64, 305" is the natural way to look a place up, so accept
-        // it directly instead of relying on three independent substring matches.
+
         if (coordinateQuery != null
                 && entry.x() == coordinateQuery[0]
                 && entry.y() == coordinateQuery[1]
@@ -74,7 +66,6 @@ public final class JournalFilter {
         return true;
     }
 
-    /** True when the raw search text is exactly three integers, e.g. {@code "120 64 -300"}. */
     public static boolean isCoordinateQuery(String raw) {
         return parseCoordinateQuery(raw) != null;
     }

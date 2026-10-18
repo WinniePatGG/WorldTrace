@@ -20,12 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Per-world separation, persistence across sessions and read-only protection.
- *
- * <p>These tests drive the real repository against a temporary directory, including the background
- * writer, so an async bug cannot slip through.
- */
 class WorldIsolationTest {
 
     private static final String OVERWORLD = "minecraft:overworld";
@@ -33,13 +27,11 @@ class WorldIsolationTest {
     @Test
     @DisplayName("World identity is stable for the same save and unique for different saves")
     void sameNameDifferentIds(@TempDir Path dir) {
-        // Surrounding whitespace is not part of a save's identity.
+
         assertEquals(WorldIdentity.singleplayer("New World").id(),
                 WorldIdentity.singleplayer("  New World  ").id());
         assertEquals(WorldIdentity.singleplayer("Alpha").id(), WorldIdentity.singleplayer("Alpha").id());
 
-        // Two genuinely different saves whose names reduce to the same file-safe slug still get
-        // separate journals, because the id also carries a hash of the raw name.
         assertNotEquals(WorldIdentity.singleplayer("A/B").id(), WorldIdentity.singleplayer("A-B").id());
         assertNotEquals(WorldIdentity.singleplayer("Alpha").id(), WorldIdentity.singleplayer("Beta").id());
     }
@@ -150,7 +142,6 @@ class WorldIsolationTest {
             setup.manager().recordBiome("minecraft:plains", OVERWORLD, 0, 64, 0, Fixtures.T0);
             setup.flush();
 
-            // Rewrite the file as if a future version had saved it.
             Path file = setup.paths().worldFile(world);
             String contents = Files.readString(file);
             Files.writeString(file, contents.replace("\"schemaVersion\":1", "\"schemaVersion\":42"));
@@ -227,7 +218,6 @@ class WorldIsolationTest {
             assertEquals(2, second.manager().store().entryCount(),
                     "Reopening a world must not resurrect entries");
 
-            // Both discoveries get re-encountered, exactly as happens at every session start.
             DiscoveryOutcome biome = second.manager()
                     .recordBiome("minecraft:plains", OVERWORLD, 800, 64, 800, Fixtures.T0 + 60_000);
             DiscoveryOutcome milestone = second.manager()

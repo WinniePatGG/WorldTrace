@@ -5,11 +5,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
-/**
- * Timestamp rendering for the journal. WorldTrace stores wall-clock milliseconds so that the
- * "discovered on" line remains meaningful between sessions; in-game time is not persisted because
- * it is not comparable across dimensions.
- */
 public final class Timestamps {
 
     private static final DateTimeFormatter DISPLAY =
@@ -34,7 +29,6 @@ public final class Timestamps {
         return COMPACT.format(Instant.ofEpochMilli(epochMillis));
     }
 
-    /** Human readable "how long ago", used in the journal detail panel. */
     public static String formatRelative(long epochMillis, long nowMillis) {
         if (epochMillis <= 0) {
             return "unknown";

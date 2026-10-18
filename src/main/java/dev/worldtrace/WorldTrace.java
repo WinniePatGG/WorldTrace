@@ -34,19 +34,8 @@ import net.minecraft.world.level.LevelProperties;
 
 import java.nio.file.Path;
 
-/**
- * WorldTrace mod entry point.
- *
- * <p>This class is the only place that knows about Minecraft's lifecycle. It owns the singletons,
- * swaps the journal between worlds, and drives the trackers. Everything else is deliberately
- * Minecraft-free so it can be tested without launching the game.
- *
- * <p>WorldTrace is a client-only mod: everything it records is data the player's own client
- * observes, and nothing is ever sent anywhere.
- */
 public final class WorldTrace implements ClientModInitializer {
 
-    /** Milestone sampling cadence in ticks. Once a second is plenty and keeps the cost negligible. */
     private static final int SAMPLE_INTERVAL_TICKS = 20;
 
     private static StoragePaths storagePaths;
@@ -96,8 +85,6 @@ public final class WorldTrace implements ClientModInitializer {
         Runtime.getRuntime().addShutdownHook(new Thread(WorldTrace::onClientStopping, "WorldTrace-Shutdown"));
     }
 
-    // ------------------------------------------------------------- world scope
-
     private static void onWorldJoined(MinecraftClient client) {
         WorldIdentity identity = resolveIdentity(client);
         manager.loadWorld(identity, configManager.get());
@@ -125,14 +112,6 @@ public final class WorldTrace implements ClientModInitializer {
         }
     }
 
-    /**
-     * Derives the world identity.
-     *
-     * <p>For singleplayer the level name is read from the integrated server's save properties, which
-     * is the only public route to it. That name is combined with a short hash of itself, so two saves
-     * that happen to share a display name still get separate journals. Players who hit an edge case
-     * can force a distinct identity with {@code worldIdOverride} in {@code worldtrace/config.json}.
-     */
     private static WorldIdentity resolveIdentity(MinecraftClient client) {
         if (client.isIntegratedServerRunning()) {
             return WorldIdentity.singleplayer(readSingleplayerName(client));
@@ -152,8 +131,6 @@ public final class WorldTrace implements ClientModInitializer {
         }
         return null;
     }
-
-    // -------------------------------------------------------------------- tick
 
     private static void onEndTick(MinecraftClient client) {
         if (client.player == null || client.world == null || !manager.worldLoaded()) {
@@ -176,21 +153,17 @@ public final class WorldTrace implements ClientModInitializer {
         }
 
         if (WorldTraceKeys.journalPressed()) {
-            // If something was discovered moments ago, open straight onto it. This is what the
-            // "press J" hint on the discovery notification promises.
+
             openJournal(client, notifier.consumeFocusEntryId().orElse(null));
         }
         if (WorldTraceKeys.bookmarkPressed()) {
             quickBookmark(client);
         }
         if (WorldTraceKeys.destinationPressed()) {
-            // "Set" uses the most recent discovery, which is what players expect right after finding
-            // something; the journal offers the full choice.
+
             quickToggleDestination(client);
         }
     }
-
-    // ----------------------------------------------------------------- actions
 
     private static void openJournal(MinecraftClient client, String focusEntryId) {
         if (!manager.worldLoaded()) {
@@ -219,8 +192,7 @@ public final class WorldTrace implements ClientModInitializer {
                 position.getZ(), System.currentTimeMillis());
         sendFeedback(client, Text.translatable("worldtrace.message.bookmarked",
                 Text.literal(entry.name())));
-        // Open the editor straight away: a bookmark left named "Bookmark at x, y, z" is only useful
-        // once it has a real one.
+
         client.setScreen(new EntryEditorScreen(manager, entry, null));
     }
 
@@ -251,9 +223,6 @@ public final class WorldTrace implements ClientModInitializer {
         }
     }
 
-    // ---------------------------------------------------------------- accessors
-
-    /** Exposed so tests and future screens can reach the singletons without reflection. */
     public static DiscoveryManager manager() {
         return manager;
     }
@@ -266,12 +235,10 @@ public final class WorldTrace implements ClientModInitializer {
         return navigation;
     }
 
-    /** Pretty label used in messages. */
     public static String describe(TraceEntry entry) {
         return NameFormatting.prettifyIdentifier(entry.name());
     }
 
-    /** Notification mode currently in effect; kept for the settings screen integration point. */
     public static NotificationMode notificationMode() {
         return configManager.get().notificationMode();
     }

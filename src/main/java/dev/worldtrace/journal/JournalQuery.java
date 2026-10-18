@@ -7,14 +7,6 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * The journal's filter state: free-text search plus category and dimension selections.
- *
- * <p>Filters are additive and independent. Clearing the search box never resets the dimension
- * filter, and vice versa — that is exactly the behaviour players expect from a filter bar.
- * Dimensions are held as an {@link EnumSet}-like {@link Set} of raw registry ids because modded
- * dimensions are discovered at runtime.
- */
 public final class JournalQuery {
 
     private static final int MAX_DIMENSION_FILTERS = 32;

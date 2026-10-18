@@ -8,13 +8,6 @@ import dev.worldtrace.util.InputValidation;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Mod-wide preferences.
- *
- * <p>The config is plain JSON in {@code worldtrace/config.json}. Every field is validated on load:
- * an unknown enum name, a negative number or a malformed colour falls back to the default and is
- * reported through {@link #loadWarnings()} instead of aborting the launch.
- */
 public final class WorldTraceConfig {
 
     public static final int SCHEMA_VERSION = 1;
@@ -57,8 +50,6 @@ public final class WorldTraceConfig {
         return new Builder();
     }
 
-    // ------------------------------------------------------------- accessors
-
     public boolean biomeDiscoveries() {
         return biomeDiscoveries;
     }
@@ -83,12 +74,10 @@ public final class WorldTraceConfig {
         return navigationHud;
     }
 
-    /** Whether registry identifiers are shown alongside the pretty names in the journal. */
     public boolean showTechnicalIds() {
         return showTechnicalIds;
     }
 
-    /** Packed 0xRRGGBB accent colour used for headers and category highlights. */
     public int accentRgb() {
         return accentRgb;
     }
@@ -124,8 +113,6 @@ public final class WorldTraceConfig {
         builder.worldIdOverride = worldIdOverride;
         return builder;
     }
-
-    // -------------------------------------------------------- (de)serialising
 
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
@@ -189,8 +176,6 @@ public final class WorldTraceConfig {
         return builder.build();
     }
 
-    // ---------------------------------------------------------------- helpers
-
     private static boolean readBoolean(JsonObject json, String key, boolean fallback, Builder builder) {
         JsonElement element = json.get(key);
         if (element == null || element.isJsonNull()) {
@@ -227,7 +212,6 @@ public final class WorldTraceConfig {
         return element.getAsString();
     }
 
-    /** Accepts {@code RRGGBB} and {@code #RRGGBB}. */
     public static Integer parseColor(String raw) {
         String value = raw == null ? "" : raw.trim();
         if (value.startsWith("#")) {
@@ -251,7 +235,6 @@ public final class WorldTraceConfig {
         return String.format(java.util.Locale.ROOT, "#%06X", rgb & 0xFFFFFF);
     }
 
-    /** Mutable staging area; each loaded field is validated before it lands here. */
     public static final class Builder {
         private boolean biomeDiscoveries = true;
         private boolean structurePinDiscoveries = true;

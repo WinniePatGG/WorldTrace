@@ -18,23 +18,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-/**
- * The WorldTrace journal.
- *
- * <p>Structure, top to bottom: header with world name and totals, a search box, a wrapping category
- * chip row plus the dimension / favorite / sort controls, then the list and detail panes side by
- * side — or one at a time on very small windows, so nothing ever becomes unreachable.
- *
- * <p>Every interactive element is a hit region derived from the same {@link JournalLayout} that
- * draws it. Regions are rebuilt only when the layout or the result set changes, never per frame, so
- * hit testing and rendering cannot disagree and the render loop stays allocation-free.
- */
 public final class JournalScreen extends Screen {
 
     private static final int MAX_DIMENSIONS = 8;
     private static final int ROW_ACTION_HEIGHT = 20;
 
-    // Hit region actions owned by this screen. Detail-pane actions live in DetailPanel.
     private static final int ACTION_SORT = 101;
     private static final int ACTION_DIMENSION_CYCLE = 102;
     private static final int ACTION_FAVORITES_ONLY = 103;
@@ -71,15 +59,9 @@ public final class JournalScreen extends Screen {
         this.detailOnly = focusEntryId != null;
     }
 
-    /**
-     * Opens the journal, optionally pre-selecting an entry. The focus argument is what lets the
-     * "open the journal to the thing you just found" notification action jump straight to it.
-     */
     public static JournalScreen open(DiscoveryManager manager, String focusEntryId) {
         return new JournalScreen(manager, focusEntryId);
     }
-
-    // ------------------------------------------------------------------- setup
 
     @Override
     protected void init() {
@@ -98,9 +80,7 @@ public final class JournalScreen extends Screen {
             refreshResults();
         });
         searchField.setFocused(false);
-        // Order matters: the journal surface is registered first so the search field stays on top
-        // of it, and both render in the same pass that produces crisp text.
-        // UiDrawable is only a Drawable, not a Selectable, so it goes in via addDrawable().
+
         addDrawable(new UiDrawable());
         addDrawableChild(searchField);
 
@@ -130,9 +110,6 @@ public final class JournalScreen extends Screen {
         dimensionIndex = Math.min(dimensionIndex, dimensions.size());
     }
 
-    // ------------------------------------------------------------------ search
-
-    /** Re-runs filtering and sorting, keeping the selection alive when it is still visible. */
     private void refreshResults() {
         List<TraceEntry> filtered = JournalFilter.apply(manager.store().entryList(), query);
         results = JournalSorter.sorted(filtered, sortMode);
@@ -140,8 +117,7 @@ public final class JournalScreen extends Screen {
         boolean stillVisible = selectedEntryId != null
                 && results.stream().anyMatch(entry -> entry.id().equals(selectedEntryId));
         if (selectedEntryId != null && !stillVisible) {
-            // Clearing the filters must bring back exactly the context the player was in, so the
-            // id is retained while a filter is active.
+
             if (!query.isFiltered()) {
                 selectedEntryId = null;
             }
@@ -150,8 +126,6 @@ public final class JournalScreen extends Screen {
             detailOnly = false;
         }
 
-        // Regions first: they establish the filter line count, which the visible-row count (and
-        // therefore the scroll range) depends on.
         rebuildRegions();
         int maxScroll = Math.max(0, results.size() - layout.visibleRows());
         int clamped = Math.max(0, Math.min(maxScroll, scrollOffset));
@@ -169,8 +143,6 @@ public final class JournalScreen extends Screen {
         return entry.id().equals(manager.destinationEntryId());
     }
 
-    // ----------------------------------------------------------------- regions
-
     private void register(int action, int payload, int x1, int y1, int x2, int y2) {
         regions.add(new HitRegion(action, payload, x1, y1, x2, y2));
     }
@@ -182,9 +154,7 @@ public final class JournalScreen extends Screen {
         }
         int categoryLines = buildFilterRegions();
         buildSearchRegions();
-        // The dimension / favourites / sort controls always get their own row underneath the
-        // category chips. Sharing a row with them would overlap on any window wide enough to wrap,
-        // and the line count has to be known before the content area is measured.
+
         int controlY = layout.filterTop() + categoryLines * layout.filterRowHeight() + 2;
         buildHeaderRegions(controlY);
         layout.setFilterLines(categoryLines + 1);
@@ -201,7 +171,6 @@ public final class JournalScreen extends Screen {
         }
     }
 
-    /** Category chips wrap across as many lines as the window needs. */
     private int buildFilterRegions() {
         int y = layout.filterTop();
         int maxX = layout.width() - layout.padding();
@@ -221,7 +190,6 @@ public final class JournalScreen extends Screen {
         return line + 1;
     }
 
-    /** The "Clear" chip next to the search box, so typing is never the only way to reset. */
     private void buildSearchRegions() {
         int y = layout.searchTop();
         int x = layout.listLeft() + searchField.getWidth() + 4;
@@ -243,7 +211,6 @@ public final class JournalScreen extends Screen {
         int sortWidth = JournalPainter.chipWidth(textRenderer, sortLabel);
         int clearWidth = JournalPainter.chipWidth(textRenderer, "Clear");
 
-        // Sort sits on the far right of the control row; the rest flow leftwards from the list edge.
         register(ACTION_SORT, 0, maxX - sortWidth, controlY, maxX, controlY + chipHeight);
 
         int x = layout.listLeft();
@@ -253,8 +220,7 @@ public final class JournalScreen extends Screen {
             register(ACTION_FAVORITES_ONLY, 0, x, controlY, x + favoritesWidth, controlY + chipHeight);
             x += favoritesWidth + JournalPainter.CHIP_SPACING;
         }
-        // "Clear all filters" is only useful when something is actually filtered, so it only appears
-        // when it fits without colliding with the sort chip.
+
         if (x + clearWidth <= maxX - sortWidth - JournalPainter.CHIP_SPACING && query.isFiltered()) {
             register(ACTION_CLEAR_FILTERS, 0, x, controlY, x + clearWidth, controlY + chipHeight);
         }
@@ -319,7 +285,6 @@ public final class JournalScreen extends Screen {
         }
     }
 
-    /** Top of the detail action grid, so the pane's text never overlaps the buttons. */
     private int detailActionsTop() {
         Optional<TraceEntry> maybe = selected();
         if (maybe.isEmpty()) {
@@ -330,19 +295,14 @@ public final class JournalScreen extends Screen {
         return Math.max(layout.contentTop() + 30, layout.contentBottom() - rows * (ROW_ACTION_HEIGHT + 2) - 2);
     }
 
-    // ------------------------------------------------------------------ render
-
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         renderBackground(context, mouseX, mouseY, delta);
-        // The whole interface is drawn by a child element rather than inline here. Everything drawn
-        // directly in render() came out blurred, while content drawn through super.render() — the
-        // search field — stayed razor sharp, so the UI is moved into that same pass. See UiDrawable.
+
         super.render(context, mouseX, mouseY, delta);
         renderTooltip(context, mouseX, mouseY);
     }
 
-    /** Draws the entire journal surface. Registered as the first child, under the search field. */
     private final class UiDrawable implements Drawable {
 
         @Override
@@ -380,7 +340,6 @@ public final class JournalScreen extends Screen {
                 JournalPainter.fit(textRenderer, info, Math.max(20, right - x - titleWidth - 12)),
                 x + titleWidth + 12, y + 6, JournalPalette.TEXT_MUTED);
 
-        // Status message shares the header line, right aligned, so it never covers the list.
         if (statusMessage != null) {
             if (System.currentTimeMillis() > statusUntilMillis) {
                 statusMessage = null;
@@ -481,7 +440,7 @@ public final class JournalScreen extends Screen {
         }
 
         if (entry.category() == EntryCategory.STRUCTURE && !entry.confirmed()) {
-            // Unconfirmed findings are marked, never presented as fact.
+
             context.fill(x2 - 4, y1 + 4, x2 - 2, y1 + 6, JournalPalette.WARNING);
         }
     }
@@ -596,8 +555,6 @@ public final class JournalScreen extends Screen {
         }
     }
 
-    // ------------------------------------------------------------- interaction
-
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
@@ -619,7 +576,7 @@ public final class JournalScreen extends Screen {
                 refreshResults();
             }
             case ACTION_DIMENSION_CYCLE -> {
-                // -1 means "all dimensions"; each click steps through the dimensions found in data.
+
                 dimensionIndex = dimensionIndex >= dimensions.size() - 1 ? -1 : dimensionIndex + 1;
                 query.clearDimensions();
                 if (dimensionIndex >= 0) {
@@ -698,7 +655,6 @@ public final class JournalScreen extends Screen {
         return true;
     }
 
-    /** Runs {@code action} only when something is selected and the journal is writable. */
     private void withSelection(java.util.function.Consumer<String> action) {
         String id = selectedEntryId;
         if (id == null) {
@@ -777,7 +733,7 @@ public final class JournalScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        // The search field gets first refusal so typing works while it has focus.
+
         if (super.keyPressed(keyCode, scanCode, modifiers)) {
             return true;
         }
@@ -852,13 +808,11 @@ public final class JournalScreen extends Screen {
         return !layout.narrow() || detailOnly;
     }
 
-    /** Sets a transient status message shown in the header line. */
     public void setStatus(String message) {
         statusMessage = message;
         statusUntilMillis = System.currentTimeMillis() + 4000;
     }
 
-    /** Reopens the journal after a child screen changed the journal. */
     public void reopen() {
         if (client != null) {
             client.setScreen(this);

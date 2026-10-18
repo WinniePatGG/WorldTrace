@@ -10,26 +10,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * The structures WorldTrace knows how to corroborate, and the blocks that prove they are there.
- *
- * <p>A Fabric client never receives structure start data from the server, so WorldTrace cannot make
- * a claim about a structure on its own. What it can do is verify a claim the player has supplied:
- * when a watch pin is reached, the blocks inside the already-loaded chunks are checked for the
- * characteristic building materials of that structure type. Finding them upgrades the entry to
- * <em>confirmed</em>; not finding them still creates an entry, clearly marked <em>unconfirmed</em>.
- *
- * <p>Marker blocks are heuristics, and the journal says so. A player who builds a sandstone
- * staircase next to a pin may see a temple listed as unconfirmed rather than confirmed — which is the
- * honest outcome.
- */
 public final class StructureCatalog {
 
-    /**
-     * @param structureIds  vanilla structure registry ids this type covers
-     * @param markers       blocks that strongly indicate the structure; scanning stops at the first hit
-     * @param defaultRadius suggested pin radius, large enough to contain the whole structure
-     */
     public record StructureType(String displayName, List<String> structureIds, Set<Block> markers,
                                 int defaultRadius) {
 
@@ -97,7 +79,6 @@ public final class StructureCatalog {
                 "minecraft:trial_chambers");
     }
 
-    /** Returns the type covering {@code structureId}, or {@code null} when it is not known. */
     public static StructureType lookup(String structureId) {
         if (structureId == null) {
             return null;
@@ -114,7 +95,6 @@ public final class StructureCatalog {
         return type == null ? 48 : type.defaultRadius();
     }
 
-    /** Every catalogued structure id, offered in the watch-pin dialog. */
     public static List<String> allStructureIds() {
         return List.copyOf(BY_STRUCTURE_ID.keySet());
     }

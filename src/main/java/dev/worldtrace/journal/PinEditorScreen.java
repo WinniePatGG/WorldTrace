@@ -12,13 +12,6 @@ import net.minecraft.util.math.BlockPos;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Creates a watch pin at the player's current position.
- *
- * <p>A pin is a statement of expectation, not a discovery: "there should be a desert temple around
- * here". WorldTrace only turns it into a journal entry once the player has actually been within the
- * pin's radius, and it verifies the structure's building materials in the loaded chunks when it can.
- */
 public final class PinEditorScreen extends JournalFormScreen {
 
     private static final int LABEL_LENGTH = InputValidation.MAX_LABEL_LENGTH;
@@ -27,7 +20,6 @@ public final class PinEditorScreen extends JournalFormScreen {
     private final BlockPos position;
     private final String dimensionId;
 
-    /** Structure ids the player can step through, with "None" meaning a plain landmark pin. */
     private final List<String> structureOptions = new ArrayList<>();
     private int structureIndex;
     private int radiusIndex;

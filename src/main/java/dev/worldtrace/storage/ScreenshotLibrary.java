@@ -12,19 +12,10 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Manages the screenshot files an entry may reference.
- *
- * <p>WorldTrace never captures the framebuffer itself. It copies screenshots the player already took
- * with F2 out of the vanilla {@code screenshots} folder into the journal's own directory, so a
- * journal can be backed up or moved together with its images.
- *
- * <p>Files stay on the player's machine. Nothing is uploaded, ever.
- */
 public final class ScreenshotLibrary {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("WorldTrace/Screenshots");
-    /** Screenshots newer than this are considered "the one the player just took". */
+
     private static final long RECENT_WINDOW_MILLIS = 15_000L;
 
     private final StoragePaths paths;
@@ -33,7 +24,6 @@ public final class ScreenshotLibrary {
         this.paths = paths;
     }
 
-    /** Recent screenshot files, newest first. Returns an empty list when there are none. */
     public List<Path> recent(Path gameDirectory, int limit) {
         Path screenshots = gameDirectory.resolve("screenshots");
         if (!Files.isDirectory(screenshots)) {
@@ -52,11 +42,6 @@ public final class ScreenshotLibrary {
         return files.size() <= limit ? List.copyOf(files) : List.copyOf(files.subList(0, limit));
     }
 
-    /**
-     * Copies the newest screenshot taken within the last few seconds into the journal folder.
-     *
-     * @return the path relative to the WorldTrace root, or {@code null} when there was nothing new
-     */
     public String attachMostRecent(Path gameDirectory, WorldIdentity identity, String entryId) {
         List<Path> candidates = recent(gameDirectory, 5);
         if (candidates.isEmpty()) {
@@ -80,7 +65,6 @@ public final class ScreenshotLibrary {
         }
     }
 
-    /** Absolute path of a stored reference, or {@code null} when it is missing from disk. */
     public Path resolve(String relativeReference) {
         if (relativeReference == null || relativeReference.isBlank()) {
             return null;

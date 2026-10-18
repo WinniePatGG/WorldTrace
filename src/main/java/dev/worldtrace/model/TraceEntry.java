@@ -7,18 +7,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * A single record in the world journal.
- *
- * <p>Instances are immutable; edits produce a copy through the {@code with*} helpers. The record
- * deliberately keeps {@link #sourceName()} separate from {@link #name()} so that renaming a biome
- * or bookmark never destroys the identifier-derived metadata used for deduplication, search and
- * the technical id column. {@link #discoveryKey()} carries the deduplication identity and survives
- * both renaming and reloads, which is what lets WorldTrace recognise a biome it already knows about.
- *
- * <p>This class has no Minecraft dependency on purpose: the storage codec, the search engine and
- * the tests all operate on plain Java data.
- */
 public record TraceEntry(
         String id,
         String name,
@@ -40,9 +28,8 @@ public record TraceEntry(
         boolean confirmed,
         String discoveryKey) {
 
-    /** Longest stored dimension identifier we are willing to accept from a file. */
     public static final int MAX_DIMENSION_ID_LENGTH = 128;
-    /** Bound for the serialised deduplication key; keeps pathological files from bloating memory. */
+
     public static final int MAX_DISCOVERY_KEY_LENGTH = 256;
 
     public TraceEntry {
@@ -112,7 +99,6 @@ public record TraceEntry(
                 discoveryKey);
     }
 
-    /** Bookmarks are player-created, so they never carry a discovery key. */
     public boolean isManual() {
         return category == EntryCategory.BOOKMARK;
     }
@@ -121,16 +107,11 @@ public record TraceEntry(
         return discoveryKey != null;
     }
 
-    /** Tags are compared case-insensitively; the record already stores them normalised. */
     public boolean hasTag(String tag) {
         String normalized = InputValidation.normalizeTag(tag);
         return !normalized.isEmpty() && tags.contains(normalized);
     }
 
-    /**
-     * Lowercased haystack used by the journal search box. Recomputed on demand rather than cached
-     * because search runs on filter changes and on typing, not every frame.
-     */
     public String searchableText() {
         StringBuilder builder = new StringBuilder(64);
         builder.append(name).append(' ')
@@ -179,19 +160,12 @@ public record TraceEntry(
         return copy(name, notes, tags, favorite, screenshotRef, isConfirmed);
     }
 
-    /** Records a revisit without creating a duplicate entry. */
     public TraceEntry recordVisit(long now) {
         return new TraceEntry(id, name, sourceName, category, dimensionId, x, y, z,
                 firstSeenAtMillis, Math.max(now, firstSeenAtMillis), visitCount + 1, biomeId,
                 structureId, notes, tags, favorite, screenshotRef, confirmed, discoveryKey);
     }
 
-    /**
-     * Produces a genuinely separate entry for the same discovery, used by the
-     * {@code RECORD_SEPARATE} revisit mode to keep the full travel chronology. The new record gets a
-     * fresh id so it does not overwrite the original, but keeps the discovery key so the pair is
-     * still recognisably the same thing.
-     */
     public TraceEntry withNewIdentity(long now) {
         return new TraceEntry(UUID.randomUUID().toString(), name, sourceName, category, dimensionId,
                 x, y, z, Math.max(now, firstSeenAtMillis), Math.max(now, firstSeenAtMillis), 1, biomeId,

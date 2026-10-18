@@ -19,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Creating, editing and deleting manual bookmarks, plus pin and event plumbing. */
 class BookmarkLifecycleTest {
 
     private static final String OVERWORLD = "minecraft:overworld";

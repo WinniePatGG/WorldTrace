@@ -5,17 +5,6 @@ import net.minecraft.client.util.InputUtil;
 
 import org.lwjgl.glfw.GLFW;
 
-/**
- * WorldTrace's configurable key bindings.
- *
- * <p>Defaults are chosen to sit next to the vanilla map and screenshot keys without colliding with
- * anything the game itself binds by default:
- * <ul>
- *   <li>{@code J} — open the journal (free; vanilla uses it for nothing)</li>
- *   <li>{@code K} — bookmark the current position (free)</li>
- *   <li>{@code L} — set / clear the navigation destination (free)</li>
- * </ul>
- */
 public final class WorldTraceKeys {
 
     public static final String CATEGORY = "key.categories.worldtrace";
@@ -49,7 +38,6 @@ public final class WorldTraceKeys {
         net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.registerKeyBinding(toggleDestination);
     }
 
-    /** True once per physical press. */
     public static boolean journalPressed() {
         return openJournal != null && openJournal.wasPressed();
     }

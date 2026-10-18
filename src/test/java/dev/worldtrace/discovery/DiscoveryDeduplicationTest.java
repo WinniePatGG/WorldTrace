@@ -18,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Deduplication, revisit handling and discovery-key stability. */
 class DiscoveryDeduplicationTest {
 
     private static final String OVERWORLD = "minecraft:overworld";
@@ -139,7 +138,7 @@ class DiscoveryDeduplicationTest {
 
             worlds.manager().recordPin(first, true, T0 + 1);
             worlds.manager().recordPin(second, true, T0 + 2);
-            // Reaching the second pin again must not be mistaken for a revisit of the first.
+
             DiscoveryOutcome repeat = worlds.manager().recordPin(second, true, T0 + 3);
 
             assertFalse(repeat.created());
@@ -174,7 +173,7 @@ class DiscoveryDeduplicationTest {
             assertTrue(worlds.manager().recordMilestone("travel:1000", "1 km travelled", "*", 0, 64, 0, T0).created());
             assertFalse(worlds.manager().recordMilestone("travel:1000", "1 km travelled", "*", 50, 64, 50, T0 + 1).created());
             assertTrue(worlds.manager().recordMilestone("travel:5000", "5 km travelled", "*", 0, 64, 0, T0 + 2).created());
-            // A floor milestone is dimension specific, so the same threshold elsewhere is new.
+
             assertTrue(worlds.manager().recordMilestone("floor:" + NETHER, "Floor", NETHER, 0, 0, 0, T0 + 3).created());
             assertTrue(worlds.manager().recordMilestone("floor:" + OVERWORLD, "Floor", OVERWORLD, 0, -64, 0, T0 + 4).created());
 
@@ -212,7 +211,6 @@ class DiscoveryDeduplicationTest {
             assertFalse(blocked.created());
             assertEquals(100, worlds.manager().store().entryCount());
 
-            // Manual bookmarks are the player's explicit intent and must still work.
             TraceEntry bookmark = worlds.manager().createBookmark("My camp", OVERWORLD, 1, 64, 1, T0);
             assertNotNull(bookmark);
             assertEquals(101, worlds.manager().store().entryCount());

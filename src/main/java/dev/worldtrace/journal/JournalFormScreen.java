@@ -10,16 +10,8 @@ import net.minecraft.text.Text;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Shared chrome for WorldTrace's small modal dialogs (edit entry, place watch pin, manage pins).
- *
- * <p>Each dialog is a stack of labelled rows — either a text input or a value with « » step
- * buttons — and a button row at the bottom. The window is centred and sized to its content, and
- * shrinks to fit on small screens so nothing is ever clipped.
- */
 public abstract class JournalFormScreen extends Screen {
 
-    /** One labelled row. Non-editable rows render as a stepper instead of a text field. */
     public record FormField(String label, String initial, boolean editable, int maxLength) {
 
         public static FormField text(String label, String initial, int maxLength) {
@@ -78,7 +70,6 @@ public abstract class JournalFormScreen extends Screen {
         this.fields = List.copyOf(fields);
     }
 
-    /** Called by subclasses from {@code init} once {@code super.init()} has run. */
     protected void addButton(String label, Runnable action) {
         buttons.add(new ButtonSpec(label, action, true));
     }
@@ -89,7 +80,6 @@ public abstract class JournalFormScreen extends Screen {
         }
     }
 
-    /** Current text of an editable row. */
     protected String value(int index) {
         TextFieldWidget input = inputs.get(index);
         return input == null ? fields.get(index).initial() : input.getText();
@@ -102,7 +92,6 @@ public abstract class JournalFormScreen extends Screen {
         }
     }
 
-    /** Current text of a stepper row. */
     protected String choice(int index) {
         return choiceValues.get(index);
     }
@@ -115,7 +104,6 @@ public abstract class JournalFormScreen extends Screen {
         return fields.size();
     }
 
-    /** Invoked when the player presses Enter or clicks the primary button. */
     protected void onConfirm() {
     }
 
@@ -124,7 +112,7 @@ public abstract class JournalFormScreen extends Screen {
         inputs.clear();
         choiceValues.clear();
         regions.clear();
-        // Buttons are re-registered on every resize, so the list must start empty each time.
+
         buttons.clear();
 
         windowWidth = Math.max(170, Math.min(320, width - 24));
@@ -135,7 +123,6 @@ public abstract class JournalFormScreen extends Screen {
         windowY = Math.max(4, (height - windowHeight) / 2);
         contentTop = windowY + 16;
 
-        // Registered before the inputs so the dialog surface draws underneath them.
         addDrawable(new FormSurface());
 
         for (int i = 0; i < fields.size(); i++) {
@@ -158,10 +145,6 @@ public abstract class JournalFormScreen extends Screen {
         buildChoiceRegions();
     }
 
-    /**
-     * Hook for subclasses to register their buttons. Called from {@code init} after the inputs
-     * exist and before button geometry is computed.
-     */
     protected void defineButtons() {
     }
 
@@ -200,8 +183,7 @@ public abstract class JournalFormScreen extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         renderBackground(context, mouseX, mouseY, delta);
-        // Drawn as a child element, not inline: see JournalScreen.UiDrawable for why direct draws
-        // inside render() come out blurred.
+
         super.render(context, mouseX, mouseY, delta);
     }
 
@@ -292,7 +274,6 @@ public abstract class JournalFormScreen extends Screen {
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    /** Overridden by dialogs whose steppers change a list of options. */
     protected void cycleChoice(int index, int direction) {
     }
 
@@ -320,7 +301,6 @@ public abstract class JournalFormScreen extends Screen {
         }
     }
 
-    /** Normalises text before it is handed back to the journal. */
     protected static String normalize(String raw, int maxLength) {
         return InputValidation.truncate(raw == null ? "" : raw.trim(), maxLength);
     }

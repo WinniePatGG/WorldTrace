@@ -5,13 +5,6 @@ import dev.worldtrace.model.TraceEntry;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Journal sort orders.
- *
- * <p>Every comparator ends with the entry id as a tie-breaker so the ordering is total: entries that
- * share a timestamp or a name never swap places between two sorts of the same data, which would make
- * the selection jump around while the player scrolls.
- */
 public final class JournalSorter {
 
     public static final Comparator<TraceEntry> NEWEST =
@@ -47,7 +40,6 @@ public final class JournalSorter {
         };
     }
 
-    /** Returns a new list; the input is left untouched. */
     public static List<TraceEntry> sorted(List<TraceEntry> source, SortMode mode) {
         List<TraceEntry> copy = new java.util.ArrayList<>(source);
         copy.sort(comparator(mode));

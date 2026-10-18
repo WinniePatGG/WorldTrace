@@ -9,13 +9,6 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Path;
 import java.util.Optional;
 
-/**
- * Loads, caches and persists {@link WorldTraceConfig}.
- *
- * <p>Writes use the same crash-safe path as the journals. A config that cannot be parsed is left
- * on disk untouched and the defaults are used for the session, so a typo can never prevent the
- * game from starting.
- */
 public final class ConfigManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("WorldTrace/Config");
@@ -36,8 +29,7 @@ public final class ConfigManager {
         Optional<JsonObject> json = JsonFileStore.read(file);
         if (json.isEmpty()) {
             config = WorldTraceConfig.defaults();
-            // Write the defaults straight away so the file exists, is discoverable and documents
-            // every available option instead of the player having to guess at it.
+
             LOGGER.info("No WorldTrace config found; writing defaults to {}", file);
             save();
             return;
@@ -53,7 +45,6 @@ public final class ConfigManager {
         }
     }
 
-    /** Applies and immediately persists {@code updated}. */
     public void update(WorldTraceConfig updated) {
         config = updated;
         save();

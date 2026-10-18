@@ -9,10 +9,6 @@ import dev.worldtrace.storage.WorldIdentity;
 
 import java.nio.file.Path;
 
-/**
- * Builds a fully wired {@link DiscoveryManager} backed by a temporary directory, so tests exercise
- * the real storage stack instead of a mock.
- */
 public final class TestWorlds implements AutoCloseable {
 
     private final Path gameDirectory;
@@ -47,7 +43,6 @@ public final class TestWorlds implements AutoCloseable {
         return new StoragePaths(gameDirectory);
     }
 
-    /** Flushes pending writes and waits for them, mimicking leaving a world. */
     public void flush() {
         manager.save();
         repository.flush(java.time.Duration.ofSeconds(5));

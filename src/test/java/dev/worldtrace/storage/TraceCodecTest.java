@@ -23,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Serialisation, validation of hostile input, and schema migration. */
 class TraceCodecTest {
 
     private static final String OVERWORLD = "minecraft:overworld";
@@ -36,10 +35,6 @@ class TraceCodecTest {
                 "screenshots/sp-entry-1/abc.png", true, null);
     }
 
-    /**
-     * An automatically discovered entry. Its discovery key is what stops a biome being recorded
-     * again after a reload, so it has to survive a full encode/decode cycle.
-     */
     private static TraceEntry discovered() {
         return new TraceEntry(
                 "entry-2", "Plains", "Plains", EntryCategory.BIOME, OVERWORLD,
@@ -254,7 +249,7 @@ class TraceCodecTest {
 
         assertTrue(decoded.report().readOnly());
         assertTrue(decoded.report().warnings().stream().anyMatch(w -> w.contains("newer WorldTrace version")));
-        // The records are still readable, so the player can see their history.
+
         assertEquals(1, decoded.data().entries().size());
     }
 
@@ -291,8 +286,6 @@ class TraceCodecTest {
         assertEquals(TraceCodec.SCHEMA_VERSION, root.get("schemaVersion").getAsInt());
         assertNotNull(JsonParser.parseString(root.toString()));
     }
-
-    // ------------------------------------------------------------- fixtures
 
     private static JsonObject rootWithEntries(JsonObject entry) {
         JsonObject root = new JsonObject();

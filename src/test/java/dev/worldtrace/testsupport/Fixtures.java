@@ -6,12 +6,6 @@ import dev.worldtrace.storage.WorldIdentity;
 
 import java.util.UUID;
 
-/**
- * Deterministic fixtures for the test suite.
- *
- * <p>Timestamps are fixed rather than read from the clock so ordering assertions never become flaky,
- * and ids are supplied explicitly so a failing test points at a specific record.
- */
 public final class Fixtures {
 
     public static final long T0 = 1_700_000_000_000L;

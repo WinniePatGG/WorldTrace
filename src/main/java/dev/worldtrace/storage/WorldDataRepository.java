@@ -16,18 +16,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * Owns all world-file I/O.
- *
- * <p>Loading happens on the game thread because it must complete before the journal can be opened,
- * but a world file with a few thousand entries parses in single-digit milliseconds. Writing is
- * always handed to a dedicated daemon thread: the immutable snapshot is taken on the game thread
- * (cheap — it only copies references) and serialised plus written off-thread.
- *
- * <p>Saves are coalesced. Calling {@link #save} repeatedly — for example once per discovery while
- * walking — results in at most one pending write; if the journal changes while a write is in
- * flight, exactly one follow-up write follows it. The render thread therefore never waits on disk.
- */
 public final class WorldDataRepository implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("WorldTrace/Storage");
@@ -52,10 +40,6 @@ public final class WorldDataRepository implements AutoCloseable {
         this.writer = Executors.newSingleThreadExecutor(factory);
     }
 
-    /**
-     * Modification time of {@code file}, or the current time when it cannot be determined. Used as
-     * the fallback timestamp for records whose own timestamp is missing from a hand-edited file.
-     */
     private static long readLastModified(Path file) {
         try {
             return Files.getLastModifiedTime(file).toMillis();
@@ -65,11 +49,6 @@ public final class WorldDataRepository implements AutoCloseable {
         }
     }
 
-    /**
-     * Reads the journal for {@code identity}, falling back to an empty journal when the file is
-     * absent. Corrupt files are quarantined by {@link JsonFileStore} and recovered from the
-     * {@code .bak} copy when possible.
-     */
     public LoadResult load(WorldIdentity identity) {
         Path file = paths.worldFile(identity);
         Optional<JsonObject> json = JsonFileStore.read(file);
@@ -98,10 +77,6 @@ public final class WorldDataRepository implements AutoCloseable {
         }
     }
 
-    /**
-     * Records {@code snapshot} as the newest state and schedules a coalesced write. Safe to call on
-     * the game thread at any frequency; it never blocks on disk.
-     */
     public void save(WorldData snapshot) {
         if (shutdown) {
             return;
@@ -123,7 +98,6 @@ public final class WorldDataRepository implements AutoCloseable {
         }
     }
 
-    /** Runs on the storage thread. Drains the dirty flag until nothing newer shows up. */
     private void drain() {
         try {
             while (dirty.get()) {
@@ -136,7 +110,7 @@ public final class WorldDataRepository implements AutoCloseable {
         } finally {
             drainScheduled.set(false);
             if (dirty.get()) {
-                // A change arrived between the loop exit and the flag reset; run again.
+
                 scheduleDrain();
             }
         }
@@ -159,12 +133,6 @@ public final class WorldDataRepository implements AutoCloseable {
         }
     }
 
-    /**
-     * Waits for queued writes to finish. Used when leaving a world so the file on disk is current.
-     * Bounded, so a stuck disk can never hang the client.
-     *
-     * @return true when the queue drained before the timeout
-     */
     public boolean flush(Duration timeout) {
         long deadline = System.nanoTime() + timeout.toNanos();
         while (System.nanoTime() < deadline) {
@@ -197,7 +165,6 @@ public final class WorldDataRepository implements AutoCloseable {
         }
     }
 
-    /** Everything the caller needs to explain the state of a freshly loaded journal. */
     public record LoadResult(WorldData data, LoadReport report, boolean readOnly) {
     }
 }

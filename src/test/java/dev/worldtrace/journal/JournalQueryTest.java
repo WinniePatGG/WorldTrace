@@ -14,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Search, filter and sort behaviour, including the combinations players actually use. */
 class JournalQueryTest {
 
     private List<TraceEntry> entries;
@@ -97,7 +96,7 @@ class JournalQueryTest {
     void dimensionFilterIsIndependent() {
         JournalQuery query = new JournalQuery().setSearchText("base");
         query.toggleDimension("minecraft:the_nether");
-        // The search text survives; the dimension filter simply excludes the match.
+
         assertEquals(0, JournalFilter.apply(entries, query).size());
 
         query.toggleDimension("minecraft:the_nether");
@@ -137,7 +136,6 @@ class JournalQueryTest {
         List<TraceEntry> newest = JournalSorter.sorted(entries, SortMode.NEWEST);
         List<TraceEntry> oldest = JournalSorter.sorted(entries, SortMode.OLDEST);
 
-        // Fixtures were appended oldest-first, so the last bookmark is the newest discovery.
         assertEquals("Ancient Ruin", newest.get(0).name());
         assertEquals("Plains", oldest.get(0).name());
         assertEquals(newest.size(), oldest.size());
