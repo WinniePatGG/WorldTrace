@@ -298,11 +298,6 @@ Bug reports and feature ideas are welcome through the tracker on the project pag
 
 ---
 
-## Changelog
-
-See [`CHANGELOG.md`](CHANGELOG.md). The Modrinth project description is in
-[`MODRINTH_DESCRIPTION.md`](MODRINTH_DESCRIPTION.md).
-
 ## License
 
 MIT — see [`LICENSE`](LICENSE).
